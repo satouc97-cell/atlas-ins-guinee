@@ -47,6 +47,7 @@ require([
 "esri/layers/FeatureLayer", "esri/Graphic", "esri/widgets/Legend", "esri/widgets/Expand", "esri/widgets/Home", "esri/config"
 ], function (EsriMap, WebMap, Basemap, TileLayer, MapView, FeatureLayer, Graphic, Legend, Expand, Home, esriConfig) {
 esriConfig.portalUrl = "https://instatguinee.maps.arcgis.com";
+esriConfig.request.timeout = 120000;
 // Éléments ArcGIS de l'INS (aucune couche CONCESSION n'est utilisée)
 const WEBMAP_ID = "f6a9c7b2260744fc839f05909ce32420";
 const INFRA_ID  = "c223bfaeaed04f7e98d48c78b80cad8d";
@@ -112,7 +113,8 @@ function preparer() {
 if (pret) return pret;
 pret = (async () => {
 await Promise.all([infra.load(), pref.load()]);
-const rp = await pref.queryFeatures({ where: "1=1", outFields: ["C_PREFECTU", "N_PREFECTU", "N_REGION"], returnGeometry: true, outSpatialReference: view.spatialReference });
+const rp = await pref.queryFeatures({ where: "1=1", outFields: ["C_PREFECTU", "N_PREFECTU", "N_REGION"], returnGeometry: true, outSpatialReference: view.spatialReference,
+maxAllowableOffset: 300, geometryPrecision: 0 });
 prefectures = rp.features.map(f => ({ code: cle(f.attributes.C_PREFECTU), nom: f.attributes.N_PREFECTU, region: f.attributes.N_REGION, geometry: f.geometry }));
 const rd = await infra.queryFeatures({ where: "1=1", groupByFieldsForStatistics: [F_DOM],
 outStatistics: [{ statisticType: "count", onStatisticField: infra.objectIdField, outStatisticFieldName: "N" }] });
