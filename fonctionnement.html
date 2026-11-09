@@ -74,8 +74,7 @@ return s.charAt(0).toUpperCase() + s.slice(1);
 // Menu disponible tout de suite
 function option(valeur, texte) { const o = document.createElement("option"); o.value = valeur; o.textContent = texte; return o; }
 select.innerHTML = "";
-const choix = option("", "— Choisissez un domaine —"); choix.disabled = true; choix.selected = true;
-select.append(choix, option("*", "Tous les domaines"));
+select.append(option("*", "Tous les domaines"));
 DOMAINES.forEach(d => select.appendChild(option(d, d)));
 select.disabled = false;
 // Fond de carte public : l'interface s'affiche sans connexion
@@ -179,6 +178,7 @@ console.error(err);
 if (etat.isConnected) etat.textContent = "Impossible d'ouvrir les données : connectez-vous à ArcGIS (compte INS), puis choisissez à nouveau un domaine.";
 } finally { select.disabled = false; }
 });
+select.dispatchEvent(new Event("change"));
 // Fiche au survol d'une préfecture
 let dernier = null, enCours = false;
 view.on("pointer-move", (evt) => {
