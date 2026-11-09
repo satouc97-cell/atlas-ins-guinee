@@ -16,30 +16,30 @@
 --encre:#0f2a1e;
 --font-display:"Libre Caslon Text", Georgia, "Times New Roman", serif;
 --font-body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
-color-scheme: dark;
+color-scheme: light;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{min-height:100%;background:var(--vert-fonce);color:#fff;font-family:var(--font-body)}
+body{min-height:100%;background:#f5f7f2;color:var(--encre);font-family:var(--font-body)}
 .drapeau{display:grid;grid-template-columns:1fr 1fr 1fr;height:8px}
 .drapeau span:nth-child(1){background:var(--rouge)}
 .drapeau span:nth-child(2){background:var(--jaune)}
 .drapeau span:nth-child(3){background:var(--vert)}
-.scene{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 70% 10%, #00704a 0%, #004a30 45%, var(--vert-fonce) 100%)}
+.scene{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 70% 10%, #ffffff 0%, #f5f7f2 55%, #e7efe7 100%)}
 .silhouette{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .contenu{position:relative;max-width:1180px;margin:0 auto;padding:22px 20px 56px}
-.barre{display:flex;align-items:center;gap:12px;font-size:15px;color:#e6f2ec}
-.barre img{width:44px;height:44px;border-radius:50%;background:#fff;object-fit:contain}
-h1{display:flex;align-items:center;justify-content:center;gap:16px;margin:34px 0 40px;font-family:var(--font-display);font-weight:700;font-size:clamp(28px,4.6vw,52px);line-height:1.15;text-align:center;text-wrap:balance}
-h1 svg{flex:none;width:clamp(36px,4.6vw,58px);height:auto;color:var(--jaune)}
+.barre{display:flex;align-items:center;gap:12px;font-size:15px;color:#2c3e34}
+.barre img{width:44px;height:44px;border-radius:50%;background:#fff;object-fit:contain;border:1px solid #d3e2d8}
+h1{display:flex;align-items:center;justify-content:center;gap:16px;margin:34px 0 40px;font-family:var(--font-display);font-weight:700;font-size:clamp(28px,4.6vw,52px);line-height:1.15;text-align:center;text-wrap:balance;color:#00573a}
+h1 svg{flex:none;width:clamp(36px,4.6vw,58px);height:auto;color:#c99a00}
 .grille{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
-.tuile{aspect-ratio:1/0.94;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:24px;background:#fff;color:var(--encre);text-decoration:none;transition:transform .15s ease, box-shadow .15s ease}
-.tuile:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(0,0,0,.35)}
-.tuile:focus-visible{outline:5px solid var(--jaune);outline-offset:4px}
+.tuile{aspect-ratio:1/0.94;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:24px;background:#fff;color:var(--encre);text-decoration:none;border:2px solid #cfe3d6;border-radius:6px;box-shadow:0 2px 8px rgba(0,50,31,.08);transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease}
+.tuile:hover{transform:translateY(-4px);border-color:var(--vert);box-shadow:0 12px 26px rgba(0,50,31,.18)}
+.tuile:focus-visible{outline:4px solid var(--vert);outline-offset:4px}
 .tuile svg{width:112px;height:112px}
 .tuile span{font-family:var(--font-display);font-weight:700;font-size:clamp(22px,2.4vw,32px);line-height:1.2;text-align:center;text-wrap:balance}
 .r svg{color:var(--rouge)} .v svg{color:var(--vert)} .j svg{color:#c99a00}
-footer{position:relative;max-width:1180px;margin:0 auto;padding:0 20px 28px;color:#cfe5da;font-size:14px}
+footer{position:relative;max-width:1180px;margin:0 auto;padding:0 20px 28px;color:#4b5b52;font-size:14px}
 @media (max-width:900px){.grille{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.grille{grid-template-columns:1fr}.tuile{aspect-ratio:auto;min-height:220px}.tuile svg{width:88px;height:88px}}
 @media (prefers-reduced-motion:reduce){.tuile{transition:none}.tuile:hover{transform:none}}
@@ -49,7 +49,7 @@ footer{position:relative;max-width:1180px;margin:0 auto;padding:0 20px 28px;colo
 <div class="drapeau" aria-hidden="true"><span></span><span></span><span></span></div>
 <div class="scene">
 <svg class="silhouette" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-<path fill="#00603e" fill-opacity=".55" stroke="#2fb47e" stroke-opacity=".45" stroke-width="3" stroke-linejoin="round"
+<path fill="#009460" fill-opacity=".07" stroke="#009460" stroke-opacity=".22" stroke-width="3" stroke-linejoin="round"
 d="M883 634 L850 631 L825 680 L791 679 L768 654 L776 605 L726 531 L695 544 L669 547 L637 554 L638 509 L619 478 L623 442 L597 391 L563 348 L468 348 L440 371 L407 374 L387 400 L373 433 L309 487 L257 415 L210 367 L180 352 L150 328 L136 274 L119 247 L84 227 L137 168 L174 171 L205 150 L231 150 L250 134 L240 94 L253 81 L255 40 L313 41 L398 71 L425 68 L434 55 L499 64 L516 57 L523 102 L542 102 L573 85 L593 90 L626 120 L677 130 L710 104 L749 88 L777 71 L801 74 L828 100 L842 134 L891 185 L866 216 L862 255 L887 243 L902 258 L896 294 L932 329 L908 338 L899 379 L926 429 L956 526 L911 541 L900 558 L909 581 L902 634 Z"/>
 </svg>
 <div class="contenu">
