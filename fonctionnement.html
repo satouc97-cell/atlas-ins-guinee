@@ -45,7 +45,7 @@ header h1{margin:0;text-align:center;font-size:20px;font-weight:700}
 require([
 "esri/Map", "esri/WebMap", "esri/Basemap", "esri/layers/TileLayer", "esri/views/MapView",
 "esri/layers/FeatureLayer", "esri/Graphic", "esri/widgets/Legend", "esri/widgets/Expand", "esri/widgets/Home", "esri/config"
-], function (Map, WebMap, Basemap, TileLayer, MapView, FeatureLayer, Graphic, Legend, Expand, Home, esriConfig) {
+], function (EsriMap, WebMap, Basemap, TileLayer, MapView, FeatureLayer, Graphic, Legend, Expand, Home, esriConfig) {
 esriConfig.portalUrl = "https://instatguinee.maps.arcgis.com";
 // Éléments ArcGIS de l'INS (aucune couche CONCESSION n'est utilisée)
 const WEBMAP_ID = "f6a9c7b2260744fc839f05909ce32420";
@@ -78,7 +78,7 @@ select.append(choix, option("*", "Tous les domaines"));
 DOMAINES.forEach(d => select.appendChild(option(d, d)));
 select.disabled = false;
 // Fond de carte public : l'interface s'affiche sans connexion
-const map = new Map({ basemap: new Basemap({ title: "Topographique",
+const map = new EsriMap({ basemap: new Basemap({ title: "Topographique",
 baseLayers: [new TileLayer({ url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" })] }) });
 const view = new MapView({ container: "carte", map, center: [-11.2, 10.3], zoom: 7 });
 view.ui.add(new Home({ view }), "top-left");
