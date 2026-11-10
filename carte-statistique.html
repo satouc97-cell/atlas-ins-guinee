@@ -22,6 +22,7 @@ header h1{margin:0;text-align:center;font-size:20px;font-weight:700}
 .barre button[aria-expanded="true"]{background:#e7f4ed}
 .barre .resume{font-size:13px;color:var(--gris);margin-left:6px}
 .barre .droite{margin-left:auto}
+#btn-table{margin-left:0}
 #param{display:none;flex:none;background:#fff;border-bottom:1px solid var(--bord);padding:12px 18px}
 #param.ouvert{display:block}
 #param h2{margin:0 0 10px;font-size:16px;display:flex;justify-content:space-between}
@@ -45,7 +46,19 @@ main{flex:1;min-height:0;display:flex;position:relative}
 #tableau tbody tr{cursor:pointer}#tableau tbody tr:hover{background:#f1f9f4}
 .fil{position:absolute;left:10px;bottom:22px;z-index:2;background:#fff;border:1px solid var(--bord);border-radius:4px;padding:6px 10px;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .etat{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:#fff;padding:14px 18px;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.2);font-size:15px;max-width:420px;text-align:center}
-@media (max-width:700px){header h1{font-size:16px} header a span{display:none} #tableau{position:absolute;right:0;top:0;bottom:0;z-index:4;width:85%}}
+#age{display:none;width:430px;flex:none;background:#fff;border-left:1px solid var(--bord);overflow:auto;padding-bottom:12px}
+#age.ouvert{display:block}
+#age h2{position:sticky;top:0;margin:0;padding:10px 12px;font-size:15px;background:#fff;border-bottom:1px solid var(--bord);display:flex;justify-content:space-between;gap:8px}
+#age h2 button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--gris)}
+#age h3{font-size:14px;margin:14px 12px 6px}
+#age table{width:calc(100% - 24px);margin:0 12px;border-collapse:collapse;font-size:12.5px}
+#age th,#age td{padding:5px 6px;border-bottom:1px solid #eef1ee;text-align:right;font-variant-numeric:tabular-nums}
+#age th:first-child,#age td:first-child{text-align:left}
+.leg-pyr{display:flex;gap:14px;font-size:12px;margin:0 12px 4px}.leg-pyr i{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px}
+.age-sel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px}
+.age-sel select{font:inherit;padding:4px 6px}
+#age-res{display:none;margin:8px 0 0;padding:8px 10px;background:#f1f9f4;border-left:3px solid var(--v);font-size:14px}
+@media (max-width:700px){header h1{font-size:16px} header a span{display:none} #age{position:absolute;right:0;top:0;bottom:0;z-index:4;width:92%} #tableau{position:absolute;right:0;top:0;bottom:0;z-index:4;width:85%}}
 </style>
 </head>
 <body>
@@ -59,18 +72,21 @@ main{flex:1;min-height:0;display:flex;position:relative}
 <select id="indic" aria-label="Indicateur"></select>
 <button id="btn-param" type="button" aria-expanded="false" aria-controls="param">Paramètres détaillés ▾</button>
 <span class="resume" id="resume"></span>
-<button id="btn-table" class="droite" type="button" aria-expanded="false" aria-controls="tableau">Tableau des données ›</button>
+<button id="btn-age" class="droite" type="button" aria-expanded="false" aria-controls="age">Structure par âge</button>
+<button id="btn-table" type="button" aria-expanded="false" aria-controls="tableau">Tableau des données ›</button>
 </div>
 <section id="param" aria-label="Recherche détaillée de la population">
 <h2>Recherche détaillée de la population <button type="button" id="fermer-param" aria-label="Fermer">×</button></h2>
 <div class="ligne"><label for="annee">Année du recensement</label><select id="annee"><option value="2025">2025 – RGPH-4 (résultats préliminaires)</option></select></div>
 <div class="ligne"><label>Genre</label><div class="genre" role="group" aria-label="Genre"><button type="button" data-g="T" aria-pressed="true">Ensemble</button><button type="button" data-g="H" aria-pressed="false">Hommes</button><button type="button" data-g="F" aria-pressed="false">Femmes</button></div></div>
-<div class="ligne"><label>Âge</label><span class="note">Pas encore disponible par préfecture dans les résultats préliminaires.</span></div>
+<div class="ligne"><label for="age-on">Âge (optionnel)</label><div class="age-sel"><input type="checkbox" id="age-on" aria-label="Filtrer par âge"> de <select id="age-de" aria-label="Âge de début" disabled></select> à <select id="age-a" aria-label="Âge de fin" disabled></select><span class="note">Résultat national : l'âge n'est pas encore publié par préfecture.</span></div></div>
+<p id="age-res" role="status"></p>
 <button id="afficher" type="button">Afficher</button>
 </section>
 <main>
 <div id="carte"><div class="etat" id="etat">Chargement de la carte… Si une fenêtre de connexion s'ouvre, connectez-vous avec votre compte ArcGIS de l'INS.</div><div class="fil" id="fil">Guinée</div></div>
 <aside id="tableau" aria-label="Tableau des données"><h2><span id="t-titre">Tableau des données</span><button type="button" id="fermer-table" aria-label="Fermer">×</button></h2><table><thead><tr><th>Préfecture</th><th>Région</th><th class="n" id="t-col">Valeur</th></tr></thead><tbody id="t-corps"></tbody></table></aside>
+<aside id="age" aria-label="Structure par âge"><h2>Structure par âge – Guinée 2025 <button type="button" id="fermer-age" aria-label="Fermer">×</button></h2><h3>Pyramide des âges</h3><div class="leg-pyr"><span><i style="background:#006d2c"></i>Hommes</span><span><i style="background:#c99a00"></i>Femmes</span></div><div id="pyramide"></div><h3>Grands groupes d'âges</h3><table><thead><tr><th>Groupe</th><th>Hommes</th><th>Femmes</th><th>Total</th><th>% total</th></tr></thead><tbody id="gg"></tbody></table><p class="note" style="margin:8px 12px">Source : INS, RGPH-4, résultats préliminaires (déc. 2025), graphique 8 et tableau 3. Niveau national.</p></aside>
 </main>
 <script src="https://js.arcgis.com/4.31/"></script>
 <script>
@@ -145,6 +161,41 @@ $("t-corps").addEventListener("click", e=>{ const tr=e.target.closest("tr"); if(
 theme.onchange=()=>{ remplirIndic(); genre="T"; genreChoisi="T"; document.querySelectorAll(".genre button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.g==="T")); afficher(); };
 indic.onchange=()=>afficher();
 $("afficher").onclick=()=>{ genre=genreChoisi; afficher(); ouvrir(bp,$("param"),false); };
+const AGES=["0-4","5-9","10-14","15-19","20-24","25-29","30-34","35-39","40-44","45-49","50-54","55-59","60-64","65-69","70-74","75-79","80-84","85 et +"];
+const PH=[1269786,1340825,1134437,985748,657199,677827,446487,463151,336469,281691,194453,171506,138448,125947,91381,54877,34874,47804];
+const PF=[1267414,1345539,1145671,1077396,800156,859355,531752,519536,338434,283354,208537,171953,146553,124058,90842,56851,44120,56733];
+const GG=[["Moins de 5 ans",1269786,1267414,2537201,14.5],["Moins de 15 ans",3745048,3758624,7503673,42.8],["Moins de 18 ans",4384416,4425394,8809810,50.3],["5-14 ans",2475262,2491210,4966472,28.4],["0-35 ans",6715760,7271702,13987462,79.8],["15-35 ans",2970711,3513078,6483789,37.0],["15-49 ans",3848573,4409984,8258558,47.1],["15-64 ans",4352980,4937028,9290007,53.0],["15 ans et plus",4707864,5309631,10017495,57.2],["18 ans et plus",4068496,4642862,8711358,49.7],["65 ans et plus",354884,372603,727487,4.2]];
+const ageOn=$("age-on"), ageDe=$("age-de"), ageA=$("age-a"), ageRes=$("age-res");
+AGES.forEach((g,i)=>{ const d=document.createElement("option"); d.value=i; d.textContent=i*5+" ans"; ageDe.appendChild(d); const a=document.createElement("option"); a.value=i; a.textContent= i===17 ? "85 ans et plus" : (i*5+4)+" ans"; ageA.appendChild(a); });
+ageA.value=17;
+ageOn.onchange=()=>{ ageDe.disabled=ageA.disabled=!ageOn.checked; if(!ageOn.checked) ageRes.style.display="none"; };
+function calcAge(){
+ if(!ageOn.checked) { ageRes.style.display="none"; return false; }
+ let i0=+ageDe.value, i1=+ageA.value; if(i1<i0){ const t=i0; i0=i1; i1=t; ageDe.value=i0; ageA.value=i1; }
+ const serie = genre==="H" ? PH : genre==="F" ? PF : PH.map((h,i)=>h+PF[i]);
+ const somme=serie.slice(i0,i1+1).reduce((a,b)=>a+b,0), base=serie.reduce((a,b)=>a+b,0);
+ const qui = genre==="H" ? "Hommes" : genre==="F" ? "Femmes" : "Population";
+ const borne = i1===17 ? (i0*5)+" ans et plus" : "de "+(i0*5)+" à "+(i1*5+4)+" ans";
+ ageRes.textContent = qui+" "+borne+" en Guinée (2025) : "+fmt(somme,0)+" personnes, soit "+fmt(somme/base*100,1)+" % "+(genre==="T"?"de la population totale.":(genre==="H"?"des hommes.":"des femmes."));
+ ageRes.style.display="block"; return true;
+}
+$("afficher").onclick=()=>{ genre=genreChoisi; afficher(); if(!calcAge()) ouvrir(bp,$("param"),false); };
+const ba=$("btn-age");
+ba.onclick=()=>{ const v=!$("age").classList.contains("ouvert"); ouvrir(ba,$("age"),v); if(v) ouvrir(bt,$("tableau"),false); };
+$("fermer-age").onclick=()=>ouvrir(ba,$("age"),false);
+bt.addEventListener("click",()=>{ if($("tableau").classList.contains("ouvert")) ouvrir(ba,$("age"),false); });
+(function pyramide(){
+ const W=400, L=46, rh=17, H=AGES.length*rh+24, demi=(W-L)/2, max=Math.max(...PH,...PF);
+ let svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Pyramide des âges de la Guinée en 2025, hommes à gauche, femmes à droite">';
+ AGES.forEach((g,i)=>{ const y=(AGES.length-1-i)*rh+2, wh=PH[i]/max*(demi-4), wf=PF[i]/max*(demi-4);
+  svg+='<rect x="'+(demi-wh).toFixed(1)+'" y="'+y+'" width="'+wh.toFixed(1)+'" height="'+(rh-3)+'" fill="#006d2c"><title>Hommes '+g+' ans : '+fmt(PH[i],0)+'</title></rect>';
+  svg+='<rect x="'+(demi+L)+'" y="'+y+'" width="'+wf.toFixed(1)+'" height="'+(rh-3)+'" fill="#c99a00"><title>Femmes '+g+' ans : '+fmt(PF[i],0)+'</title></rect>';
+  svg+='<text x="'+(demi+L/2)+'" y="'+(y+rh-6)+'" font-size="10" text-anchor="middle" fill="#0f2a1e">'+g+'</text>'; });
+ const yb=AGES.length*rh+14;
+ [0,500000,1000000].forEach(v=>{ const d=v/max*(demi-4); svg+='<text x="'+(demi-d).toFixed(1)+'" y="'+yb+'" font-size="9" text-anchor="middle" fill="#5b6660">'+(v/1000).toLocaleString("fr-FR")+' k</text><text x="'+(demi+L+d).toFixed(1)+'" y="'+yb+'" font-size="9" text-anchor="middle" fill="#5b6660">'+(v/1000).toLocaleString("fr-FR")+' k</text>'; });
+ $("pyramide").innerHTML=svg+'</svg>';
+ $("gg").innerHTML=GG.map(r=>'<tr><td>'+r[0]+'</td><td>'+fmt(r[1],0)+'</td><td>'+fmt(r[2],0)+'</td><td>'+fmt(r[3],0)+'</td><td>'+fmt(r[4],1)+'</td></tr>').join("");
+})();
 function majFil(a){ fil.textContent = a ? "Guinée › Région de "+a.REGION+" › "+a.NOM : "Guinée"; }
 (async function(){
 try{
