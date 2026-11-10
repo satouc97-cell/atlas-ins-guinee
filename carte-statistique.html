@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte statistique interactive – Atlas INS Guinée</title>
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
+<style>
+:root{--vf:#00321f;--v:#009460;--r:#CE1126;--j:#FCD116;--encre:#0f2a1e;--gris:#5b6660;--bord:#cfd6d1}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:"Segoe UI",Arial,sans-serif;color:var(--encre)}
+body{display:flex;flex-direction:column;background:#e9ece8}
+.drapeau{display:grid;grid-template-columns:1fr 1fr 1fr;height:5px;flex:none}
+.drapeau span:nth-child(1){background:var(--r)}.drapeau span:nth-child(2){background:var(--j)}.drapeau span:nth-child(3){background:var(--v)}
+header{flex:none;height:56px;background:var(--vf);color:#fff;display:grid;grid-template-columns:auto 1fr auto;align-items:center;padding:0 14px;gap:12px}
+header a{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-size:15px}
+header svg{width:28px;height:28px}
+header img{width:38px;height:38px;border-radius:50%;background:#fff}
+header h1{margin:0;text-align:center;font-size:20px;font-weight:700}
+.barre{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 14px;background:#fff;border-bottom:1px solid var(--bord)}
+.barre select,.barre button{font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--v);border-radius:4px;background:#fff;color:var(--vf);cursor:pointer}
+.barre button[aria-expanded="true"]{background:#e7f4ed}
+.barre .resume{font-size:13px;color:var(--gris);margin-left:6px}
+.barre .droite{margin-left:auto}
+#param{display:none;flex:none;background:#fff;border-bottom:1px solid var(--bord);padding:12px 18px}
+#param.ouvert{display:block}
+#param h2{margin:0 0 10px;font-size:16px;display:flex;justify-content:space-between}
+#param h2 button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--gris)}
+.ligne{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #eef1ee}
+.ligne>label{width:170px;font-size:14px;font-weight:600}
+.genre{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1}
+.genre button{font:inherit;padding:8px;border:1px solid var(--bord);border-radius:4px;background:#fff;cursor:pointer}
+.genre button[aria-pressed="true"]{border-color:var(--v);color:var(--v);font-weight:600;background:#f1f9f4}
+.note{font-size:13px;color:var(--gris)}
+#afficher{display:block;margin:10px auto 0;padding:8px 26px;border:0;border-radius:4px;background:var(--vf);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+main{flex:1;min-height:0;display:flex;position:relative}
+#carte{flex:1;min-width:0;position:relative}
+#tableau{display:none;width:340px;flex:none;background:#fff;border-left:1px solid var(--bord);overflow:auto}
+#tableau.ouvert{display:block}
+#tableau h2{position:sticky;top:0;margin:0;padding:10px 12px;font-size:15px;background:#fff;border-bottom:1px solid var(--bord);display:flex;justify-content:space-between;gap:8px}
+#tableau h2 button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--gris)}
+#tableau table{width:100%;border-collapse:collapse;font-size:13px}
+#tableau th,#tableau td{padding:6px 10px;border-bottom:1px solid #eef1ee;text-align:left}
+#tableau td.n,#tableau th.n{text-align:right;font-variant-numeric:tabular-nums}
+#tableau tbody tr{cursor:pointer}#tableau tbody tr:hover{background:#f1f9f4}
+.fil{position:absolute;left:10px;bottom:22px;z-index:2;background:#fff;border:1px solid var(--bord);border-radius:4px;padding:6px 10px;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.etat{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:#fff;padding:14px 18px;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.2);font-size:15px;max-width:420px;text-align:center}
+@media (max-width:700px){header h1{font-size:16px} header a span{display:none} #tableau{position:absolute;right:0;top:0;bottom:0;z-index:4;width:85%}}
+</style>
+</head>
+<body>
+<div class="drapeau"><span></span><span></span><span></span></div>
+<header>
+<a href="./" title="Retour à l'accueil de l'atlas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><img src="https://instatguinee.maps.arcgis.com/sharing/rest/portals/exuJdDJNL2AsHUOf/resources/thumbnail1704805144991.png" alt="Logo INS Guinée"><span>Accueil</span></a>
+<h1>Carte statistique interactive</h1><span></span>
+</header>
+<div class="barre">
+<select id="theme" aria-label="Thème"><option value="cles">Indicateurs clés</option><option value="pop">Population</option><option value="men">Ménages</option></select>
+<select id="indic" aria-label="Indicateur"></select>
+<button id="btn-param" type="button" aria-expanded="false" aria-controls="param">Paramètres détaillés ▾</button>
+<span class="resume" id="resume"></span>
+<button id="btn-table" class="droite" type="button" aria-expanded="false" aria-controls="tableau">Tableau des données ›</button>
+</div>
+<section id="param" aria-label="Recherche détaillée de la population">
+<h2>Recherche détaillée de la population <button type="button" id="fermer-param" aria-label="Fermer">×</button></h2>
+<div class="ligne"><label for="annee">Année du recensement</label><select id="annee"><option value="2025">2025 – RGPH-4 (résultats préliminaires)</option></select></div>
+<div class="ligne"><label>Genre</label><div class="genre" role="group" aria-label="Genre"><button type="button" data-g="T" aria-pressed="true">Ensemble</button><button type="button" data-g="H" aria-pressed="false">Hommes</button><button type="button" data-g="F" aria-pressed="false">Femmes</button></div></div>
+<div class="ligne"><label>Âge</label><span class="note">Pas encore disponible par préfecture dans les résultats préliminaires.</span></div>
+<button id="afficher" type="button">Afficher</button>
+</section>
+<main>
+<div id="carte"><div class="etat" id="etat">Chargement de la carte… Si une fenêtre de connexion s'ouvre, connectez-vous avec votre compte ArcGIS de l'INS.</div><div class="fil" id="fil">Guinée</div></div>
+<aside id="tableau" aria-label="Tableau des données"><h2><span id="t-titre">Tableau des données</span><button type="button" id="fermer-table" aria-label="Fermer">×</button></h2><table><thead><tr><th>Préfecture</th><th>Région</th><th class="n" id="t-col">Valeur</th></tr></thead><tbody id="t-corps"></tbody></table></aside>
+</main>
+<script src="https://js.arcgis.com/4.31/"></script>
+<script>
+// Source : INS Guinée, RGPH-4, résultats préliminaires (décembre 2025) – 33 préfectures + Conakry
+const DONNEES = {"BOFFA":{"nom":"Boffa","region":"Boké","pop":287648,"poids":1.6,"urb":18720,"pct_urb":6.5,"rur":268928,"hom":144798,"fem":142850,"rm":101,"dens":60,"men":42837,"tmen":6.7},"BOKE":{"nom":"Boké","region":"Boké","pop":777101,"poids":4.4,"urb":269592,"pct_urb":34.7,"rur":507509,"hom":385522,"fem":391579,"rm":98,"dens":70,"men":117785,"tmen":6.6},"FRIA":{"nom":"Fria","region":"Boké","pop":126205,"poids":0.7,"urb":71338,"pct_urb":56.5,"rur":54867,"hom":61852,"fem":64353,"rm":96,"dens":74,"men":20609,"tmen":6.2},"GAOUAL":{"nom":"Gaoual","region":"Boké","pop":257328,"poids":1.5,"urb":13662,"pct_urb":5.3,"rur":243666,"hom":120281,"fem":137047,"rm":88,"dens":23,"men":41530,"tmen":6.1},"KOUNDARA":{"nom":"Koundara","region":"Boké","pop":180374,"poids":1.0,"urb":40962,"pct_urb":22.7,"rur":139412,"hom":86335,"fem":94039,"rm":92,"dens":35,"men":28785,"tmen":6.2},"CONAKRY":{"nom":"Conakry","region":"Conakry","pop":3407327,"poids":19.4,"urb":3407327,"pct_urb":100.0,"rur":0,"hom":1653256,"fem":1754071,"rm":94,"dens":10200,"men":505359,"tmen":6.3},"DABOLA":{"nom":"Dabola","region":"Faranah","pop":295613,"poids":1.7,"urb":52684,"pct_urb":17.8,"rur":242929,"hom":140588,"fem":155025,"rm":91,"dens":43,"men":39676,"tmen":7.3},"DINGUIRAYE":{"nom":"Dinguiraye","region":"Faranah","pop":327941,"poids":1.9,"urb":40310,"pct_urb":12.3,"rur":287631,"hom":157640,"fem":170301,"rm":93,"dens":27,"men":46012,"tmen":7.0},"FARANAH":{"nom":"Faranah","region":"Faranah","pop":444040,"poids":2.5,"urb":95918,"pct_urb":21.6,"rur":348122,"hom":210813,"fem":233227,"rm":90,"dens":36,"men":56284,"tmen":7.7},"KISSIDOUGOU":{"nom":"Kissidougou","region":"Faranah","pop":393337,"poids":2.2,"urb":165994,"pct_urb":42.2,"rur":227343,"hom":187206,"fem":206131,"rm":91,"dens":62,"men":54274,"tmen":7.2},"KANKAN":{"nom":"Kankan","region":"Kankan","pop":841969,"poids":4.8,"urb":382984,"pct_urb":45.5,"rur":458985,"hom":414895,"fem":427074,"rm":97,"dens":48,"men":105565,"tmen":7.9},"KEROUANE":{"nom":"Kerouane","region":"Kankan","pop":297935,"poids":1.7,"urb":49683,"pct_urb":16.7,"rur":248252,"hom":146693,"fem":151242,"rm":97,"dens":31,"men":37572,"tmen":7.7},"KOUROUSSA":{"nom":"Kouroussa","region":"Kankan","pop":451205,"poids":2.6,"urb":55859,"pct_urb":12.4,"rur":395346,"hom":221545,"fem":229660,"rm":96,"dens":30,"men":54885,"tmen":8.1},"MANDIANA":{"nom":"Mandiana","region":"Kankan","pop":800959,"poids":4.6,"urb":75097,"pct_urb":9.4,"rur":725862,"hom":405378,"fem":395581,"rm":102,"dens":66,"men":115353,"tmen":6.7},"SIGUIRI":{"nom":"Siguiri","region":"Kankan","pop":1718147,"poids":9.8,"urb":352938,"pct_urb":20.5,"rur":1365209,"hom":874518,"fem":843629,"rm":104,"dens":94,"men":247421,"tmen":6.8},"COYAH":{"nom":"Coyah","region":"Kindia","pop":344741,"poids":2.0,"urb":157387,"pct_urb":45.7,"rur":187354,"hom":169603,"fem":175138,"rm":97,"dens":310,"men":51408,"tmen":6.7},"DUBREKA":{"nom":"Dubreka","region":"Kindia","pop":488569,"poids":2.8,"urb":204826,"pct_urb":41.9,"rur":283743,"hom":240410,"fem":248159,"rm":97,"dens":114,"men":70083,"tmen":7.0},"FORECARIAH":{"nom":"Forecariah","region":"Kindia","pop":415895,"poids":2.4,"urb":36641,"pct_urb":8.8,"rur":379254,"hom":203387,"fem":212508,"rm":96,"dens":98,"men":58414,"tmen":7.1},"KINDIA":{"nom":"Kindia","region":"Kindia","pop":680635,"poids":3.9,"urb":236736,"pct_urb":34.8,"rur":443899,"hom":326207,"fem":354428,"rm":92,"dens":78,"men":103072,"tmen":6.6},"TELEMELE":{"nom":"Telimelé","region":"Kindia","pop":345780,"poids":2.0,"urb":21166,"pct_urb":6.1,"rur":324614,"hom":156635,"fem":189145,"rm":83,"dens":42,"men":66133,"tmen":5.2},"KOUBIA":{"nom":"Koubia","region":"Labé","pop":125401,"poids":0.7,"urb":4610,"pct_urb":3.7,"rur":120791,"hom":56969,"fem":68432,"rm":83,"dens":44,"men":23141,"tmen":5.3},"LABE":{"nom":"Labé","region":"Labé","pop":475961,"poids":2.7,"urb":250383,"pct_urb":52.6,"rur":225578,"hom":212879,"fem":263082,"rm":81,"dens":207,"men":89459,"tmen":5.4},"LELOUMA":{"nom":"Lelouma","region":"Labé","pop":179384,"poids":1.0,"urb":8906,"pct_urb":5.0,"rur":170478,"hom":71852,"fem":107532,"rm":67,"dens":77,"men":35933,"tmen":4.9},"MALI":{"nom":"Mali","region":"Labé","pop":313119,"poids":1.8,"urb":9976,"pct_urb":3.2,"rur":303143,"hom":135502,"fem":177617,"rm":76,"dens":35,"men":60428,"tmen":5.1},"TOUGUE":{"nom":"Tougué","region":"Labé","pop":146032,"poids":0.8,"urb":8566,"pct_urb":5.9,"rur":137466,"hom":63075,"fem":82957,"rm":76,"dens":23,"men":25625,"tmen":5.6},"DALABA":{"nom":"Dalaba","region":"Mamou","pop":169069,"poids":1.0,"urb":14644,"pct_urb":8.7,"rur":154425,"hom":74141,"fem":94928,"rm":78,"dens":58,"men":36206,"tmen":4.9},"MAMOU":{"nom":"Mamou","region":"Mamou","pop":460786,"poids":2.6,"urb":99660,"pct_urb":21.6,"rur":361126,"hom":211613,"fem":249173,"rm":85,"dens":53,"men":87234,"tmen":5.4},"PITA":{"nom":"Pita","region":"Mamou","pop":286680,"poids":1.6,"urb":37401,"pct_urb":13.0,"rur":249279,"hom":119978,"fem":166702,"rm":72,"dens":68,"men":66752,"tmen":4.5},"BEYLA":{"nom":"Beyla","region":"Nzérékoré","pop":511095,"poids":2.9,"urb":29498,"pct_urb":5.8,"rur":481597,"hom":249508,"fem":261587,"rm":95,"dens":38,"men":62476,"tmen":8.0},"GUECKEDOU":{"nom":"Gueckedou","region":"Nzérékoré","pop":376885,"poids":2.2,"urb":101397,"pct_urb":26.9,"rur":275488,"hom":177560,"fem":199325,"rm":89,"dens":92,"men":61187,"tmen":6.1},"LOLA":{"nom":"Lola","region":"Nzérékoré","pop":267869,"poids":1.5,"urb":57409,"pct_urb":21.4,"rur":210460,"hom":129035,"fem":138834,"rm":93,"dens":58,"men":42116,"tmen":6.3},"MACENTA":{"nom":"Macenta","region":"Nzérékoré","pop":408414,"poids":2.3,"urb":78797,"pct_urb":19.3,"rur":329617,"hom":196110,"fem":212304,"rm":92,"dens":52,"men":64360,"tmen":6.4},"NZEREKORE":{"nom":"Nzérékoré","region":"Nzérékoré","pop":717120,"poids":4.1,"urb":316065,"pct_urb":44.1,"rur":401055,"hom":350104,"fem":367016,"rm":95,"dens":194,"men":102679,"tmen":7.0},"YOMOU":{"nom":"Yomou","region":"Nzérékoré","pop":200603,"poids":1.1,"urb":9633,"pct_urb":4.8,"rur":190970,"hom":97023,"fem":103580,"rm":94,"dens":62,"men":32260,"tmen":6.2}};
+const NATIONAL = {pop:17521167,hom:8452911,fem:9068256,urb:6776769,pct_urb:38.7,rur:10744398,rm:93,dens:71,men:2652913,tmen:6.5,poids:100};
+require(["esri/Map","esri/WebMap","esri/Basemap","esri/layers/TileLayer","esri/views/MapView","esri/layers/FeatureLayer","esri/Graphic","esri/widgets/Legend","esri/widgets/Expand","esri/widgets/Home","esri/config"],
+function (EsriMap, WebMap, Basemap, TileLayer, MapView, FeatureLayer, Graphic, Legend, Expand, Home, esriConfig) {
+esriConfig.portalUrl = "https://instatguinee.maps.arcgis.com";
+esriConfig.request.timeout = 120000;
+const IND = {
+cles: [["pop","Population totale (personnes)",0,true],["dens","Densité (habitants/km²)",0],["pct_urb","Population urbaine (%)",1],["tmen","Taille moyenne des ménages (personnes)",1]],
+pop: [["pop","Population totale (personnes)",0,true],["poids","Poids démographique (% du total national)",1],["urb","Population urbaine (personnes)",0],["rur","Population rurale (personnes)",0],["pct_urb","Population urbaine (%)",1],["rm","Rapport de masculinité (hommes pour 100 femmes)",0],["dens","Densité (habitants/km²)",0]],
+men: [["men","Nombre de ménages ordinaires",0],["tmen","Taille moyenne des ménages (personnes)",1]]
+};
+const GENRE = {T:["pop","Ensemble"],H:["hom","Hommes"],F:["fem","Femmes"]};
+const COULEURS = ["#edf8e9","#bae4b3","#74c476","#31a354","#006d2c"];
+const $ = id => document.getElementById(id);
+const theme=$("theme"), indic=$("indic"), etat=$("etat"), fil=$("fil");
+let genre = "T", genreChoisi = "T";
+const cle = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().replace(/[^A-Z]/g,"");
+const fmt = (v,d) => v===null||v===undefined ? "–" : v.toLocaleString("fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d});
+function remplirIndic(){ indic.innerHTML=""; IND[theme.value].forEach((x,i)=>{const o=document.createElement("option"); o.value=i; o.textContent=x[1]; indic.appendChild(o);}); }
+function courant(){ return IND[theme.value][+indic.value]; }
+function champ(){ const c=courant(); return c[3] ? GENRE[genre][0] : c[0]; }
+function libelle(){ const c=courant(); return c[3] && genre!=="T" ? c[1].replace("Population totale","Population – "+GENRE[genre][1].toLowerCase()) : c[1]; }
+remplirIndic();
+const bp=$("btn-param"), bt=$("btn-table");
+function ouvrir(btn, el, v){ el.classList.toggle("ouvert", v); btn.setAttribute("aria-expanded", v); }
+bp.onclick=()=>ouvrir(bp,$("param"),!$("param").classList.contains("ouvert"));
+$("fermer-param").onclick=()=>ouvrir(bp,$("param"),false);
+bt.onclick=()=>ouvrir(bt,$("tableau"),!$("tableau").classList.contains("ouvert"));
+$("fermer-table").onclick=()=>ouvrir(bt,$("tableau"),false);
+document.querySelectorAll(".genre button").forEach(b=>b.onclick=()=>{ genreChoisi=b.dataset.g; document.querySelectorAll(".genre button").forEach(x=>x.setAttribute("aria-pressed", x===b)); });
+const map = new EsriMap({ basemap: new Basemap({ baseLayers:[new TileLayer({url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"})] }) });
+const view = new MapView({ container:"carte", map, center:[-11.2,10.3], zoom:7 });
+view.ui.add(new Home({view}),"top-left");
+const legende = new Expand({ view, content:new Legend({view}), expanded:true, expandTooltip:"Légende" });
+view.ui.add(legende,"bottom-right");
+const pref = new FeatureLayer({ portalItem:{ id:"a60cca7153df4f689777eb610200a684" } });
+let polygones=[], couche=null;
+function seuils(vals){ const s=[...vals].sort((a,b)=>a-b); const q=k=>s[Math.min(s.length-1,Math.floor(k*s.length))]; return [q(.2),q(.4),q(.6),q(.8)]; }
+function afficher(){
+if(!polygones.length) return;
+const c=courant(), f=champ(), d=c[2];
+const g=polygones.map((p,i)=>{ const x=DONNEES[p.k]||{}; return new Graphic({geometry:p.geometry, attributes:{OID:i+1, NOM:x.nom||p.nom, REGION:x.region||p.region, VAL:x[f]??null, POP:x.pop??null, HOM:x.hom??null, FEM:x.fem??null, PCT_URB:x.pct_urb??null, DENS:x.dens??null, MEN:x.men??null}}); });
+const vals=[...new Set(polygones.map(p=>p.k))].map(k=>DONNEES[k]&&DONNEES[k][f]).filter(v=>v!==null&&v!==undefined);
+const b=seuils(vals), mn=Math.min(...vals), mx=Math.max(...vals);
+const bornes=[mn,b[0],b[1],b[2],b[3],mx];
+const infos=COULEURS.map((col,i)=>({minValue:bornes[i], maxValue: i===4? mx+1e-9 : bornes[i+1], label: fmt(bornes[i],d)+" – "+fmt(bornes[i+1],d), symbol:{type:"simple-fill", color:col, outline:{color:[255,255,255,.9], width:.8}}}));
+const n=new FeatureLayer({ title:libelle(), source:g, objectIdField:"OID",
+fields:[{name:"OID",type:"oid"},{name:"NOM",type:"string"},{name:"REGION",type:"string"},{name:"VAL",type:"double"},{name:"POP",type:"double"},{name:"HOM",type:"double"},{name:"FEM",type:"double"},{name:"PCT_URB",type:"double"},{name:"DENS",type:"double"},{name:"MEN",type:"double"}],
+renderer:{type:"class-breaks", field:"VAL", classBreakInfos:infos, defaultSymbol:{type:"simple-fill",color:"#d9d9d9"}, defaultLabel:"Pas de donnée"},
+labelingInfo:[{labelExpressionInfo:{expression:"$feature.NOM"}, symbol:{type:"text",color:"#0f2a1e",haloColor:"#fff",haloSize:1.2,font:{size:9,weight:"bold"}}, minScale:6000000}],
+popupTemplate:{ title:"{NOM} (région de {REGION})", content:[{type:"fields", fieldInfos:[
+{fieldName:"VAL",label:libelle(),format:{places:d,digitSeparator:true}},
+{fieldName:"POP",label:"Population totale",format:{places:0,digitSeparator:true}},
+{fieldName:"HOM",label:"Hommes",format:{places:0,digitSeparator:true}},
+{fieldName:"FEM",label:"Femmes",format:{places:0,digitSeparator:true}},
+{fieldName:"PCT_URB",label:"Population urbaine (%)",format:{places:1,digitSeparator:true}},
+{fieldName:"DENS",label:"Densité (hab./km²)",format:{places:0,digitSeparator:true}},
+{fieldName:"MEN",label:"Ménages ordinaires",format:{places:0,digitSeparator:true}}]}]}, opacity:.9 });
+if(couche) map.remove(couche); couche=n; map.add(couche,0);
+const nat=NATIONAL[f]; $("resume").textContent="Guinée : "+fmt(nat,d)+(c[0]==="pct_urb"||c[0]==="poids"?" %":"");
+bp.style.display = c[3] ? "" : "none";
+$("t-titre").textContent=libelle(); $("t-col").textContent="Valeur";
+const lignes=Object.entries(DONNEES).sort((a,b)=>(b[1][f]??-1)-(a[1][f]??-1));
+$("t-corps").innerHTML=lignes.map(([k,x])=>"<tr data-k='"+k+"'><td>"+x.nom+"</td><td>"+x.region+"</td><td class='n'>"+fmt(x[f],d)+"</td></tr>").join("");
+view.closePopup();
+}
+$("t-corps").addEventListener("click", e=>{ const tr=e.target.closest("tr"); if(!tr||!couche) return; const i=polygones.findIndex(p=>p.k===tr.dataset.k); if(i<0) return; const gr=couche.source.getItemAt(i); view.goTo(gr.geometry).then(()=>view.openPopup({features:[gr], location:gr.geometry.extent.center})); majFil(gr.attributes); });
+theme.onchange=()=>{ remplirIndic(); genre="T"; genreChoisi="T"; document.querySelectorAll(".genre button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.g==="T")); afficher(); };
+indic.onchange=()=>afficher();
+$("afficher").onclick=()=>{ genre=genreChoisi; afficher(); ouvrir(bp,$("param"),false); };
+function majFil(a){ fil.textContent = a ? "Guinée › Région de "+a.REGION+" › "+a.NOM : "Guinée"; }
+(async function(){
+try{
+await pref.load();
+const r=await pref.queryFeatures({where:"1=1", outFields:["N_PREFECTU","N_REGION"], returnGeometry:true, outSpatialReference:view.spatialReference, maxAllowableOffset:300, geometryPrecision:0});
+polygones=r.features.map(f=>({k:cle(f.attributes.N_PREFECTU), nom:f.attributes.N_PREFECTU, region:f.attributes.N_REGION, geometry:f.geometry}));
+const manquants=polygones.filter(p=>!DONNEES[p.k]).map(p=>p.nom); if(manquants.length) console.warn("Préfectures sans donnée :", manquants);
+try{ const wm=new WebMap({portalItem:{id:"f6a9c7b2260744fc839f05909ce32420"}}); await wm.load(); const reg=wm.layers.find(l=>l.title==="LIMITES REGIONS"); if(reg){ wm.remove(reg); map.add(reg); } }catch(e){ console.warn(e); }
+afficher(); etat.remove();
+}catch(err){ console.error(err); etat.textContent="Impossible d'ouvrir les contours des préfectures : connectez-vous à ArcGIS (compte INS) puis rechargez la page."; }
+})();
+let dernier=null, enCours=false;
+view.on("pointer-move", evt=>{ if(enCours||!couche) return; enCours=true;
+view.hitTest(evt,{include:[couche]}).then(res=>{ enCours=false; const r=res.results.find(x=>x.graphic); if(!r){ return; } const a=r.graphic.attributes; majFil(a); if(a.OID===dernier && view.popup.visible) return; dernier=a.OID; view.openPopup({features:[r.graphic], location:view.toMap(evt)}); }).catch(()=>{enCours=false;}); });
+});
+</script>
+</body>
+</html>
